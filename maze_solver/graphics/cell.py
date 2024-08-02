@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Tuple
+from typing import Self
 from maze_solver.graphics.line import Line
 from maze_solver.graphics.point import Point
 
@@ -15,23 +16,23 @@ class Cell:
 
         self.top_left_point = Point(x, y)
         self.top_right_point = Point(x + self.width, y)
-        self.bottom_left_pont = Point(x, y + self.height)
-        self.bottom_right_pont = Point(x + self.width, y + self.height)
+        self.bottom_left_point = Point(x, y + self.height)
+        self.bottom_right_point = Point(x + self.width, y + self.height)
     
     def how_to_draw(self) -> List[Line]:
         lines = []
 
         if self.has_left_wall:
-            lines.append(Line(self.top_left_point, self.bottom_left_pont))
+            lines.append(Line(self.top_left_point, self.bottom_left_point))
 
         if self.has_right_wall:
-            lines.append(Line(self.top_right_point, self.bottom_right_pont))
+            lines.append(Line(self.top_right_point, self.bottom_right_point))
 
         if self.has_top_wall:
             lines.append(Line(self.top_left_point, self.top_right_point))
 
         if self.has_bottom_wall:
-            lines.append(Line(self.bottom_left_pont, self.bottom_right_pont))
+            lines.append(Line(self.bottom_left_point, self.bottom_right_point))
 
         return lines
     
@@ -41,13 +42,39 @@ class Cell:
 
         return Point(center_x, center_y)
     
+    def get_top_left_tuple(self) -> Tuple[int, int]:
+        return (self.top_left_point.x, self.top_left_point.y)
+    
     def break_top(self) -> Line:
         self.has_top_wall = False
         return Line(self.top_left_point, self.top_right_point)
     
     def break_bottom(self) -> Line:
         self.has_bottom_wall = False
-        return Line(self.bottom_left_pont, self.bottom_right_pont)
+        return Line(self.bottom_left_point, self.bottom_right_point)
+    
+    def merge(self, m: Self) -> Line:
+        if self.top_left_point == m.top_right_point and self.bottom_left_point == m.bottom_right_point:
+            self.has_left_wall = False
+            m.has_right_wall = False
+            return Line(self.top_left_point, self.bottom_left_point)
+
+        if self.top_right_point == m.top_left_point and self.bottom_right_point == m.bottom_left_point:
+            self.has_right_wall = False
+            m.has_left_wall = False
+            return Line(self.top_right_point, self.bottom_right_point)
+        
+        if self.bottom_left_point == m.top_left_point and self.bottom_right_point == m.top_right_point:
+            self.has_bottom_wall = False
+            m.has_top_wall = False
+            return Line(self.bottom_left_point, self.bottom_right_point)
+        
+        if self.top_left_point == m.bottom_left_point and self.top_right_point == m.bottom_right_point:
+            self.has_top_wall = False
+            m.has_bottom_wall = False
+            return Line(self.top_left_point, self.top_right_point)
+        
+        raise Exception(f"Cells {self} and {m} cannot be merged")
     
     def __repr__(self):
-        return f"Cell with top left point at x: {self.top_left_point.x} and y: {self.top_left_point.y}"
+        return f"(x:{self.top_left_point.x},y:{self.top_left_point.y})"

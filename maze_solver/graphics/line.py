@@ -16,3 +16,6 @@ class Line:
         x = f"{self.start.x}{self.end.x}"
         y = f"{self.start.y}{self.end.y}"
         return hash(x + y)
+    
+    def __repr__(self) -> str:
+        return f"{self.start.x},{self.start.y} --> {self.end.x},{self.end.y}"

@@ -1,53 +1,46 @@
+from typing import List
+import random
+from maze_solver.grid import Grid
+from maze_solver.graphics.line import Line
 from maze_solver.graphics.cell import Cell
 
 class Maze:
     def __init__(
-        self,
-        x1,
-        y1,
-        num_rows,
-        num_cols,
-        cell_size_x,
-        cell_size_y,
-    ) -> None:
-        self.x1 = x1
-        self.y1 = y1
-        self.num_rows = num_rows
-        self.num_cols = num_cols
-        self.cell_size_x = cell_size_x
-        self.cell_size_y = cell_size_y
-        self.cells = []
-        self.to_update = []
+            self,
+            grid: Grid,
+            seed=None
+        ) -> None:
+        self.grid = grid
+        self.blueprint = []
+        self.visited = {}
+        self.current = None
+        random.seed(seed)
+        self._break_walls()
 
-        self._create_cells()
+    def _break_walls(self):
+        self.current = self.grid.get_cell(0, 0)
+        self.blueprint.append(self.current.break_top())
+        last_i, last_j = map(lambda num: num - 1, self.grid.get_size())
+        self.blueprint.append(self.grid.get_cell(last_i, last_j).break_bottom())
+        self._break_walls_r(0, 0)
 
-    def _create_cells(self):
-        current_y = self.y1
-        for row_i in range(0, self.num_rows):
-            self.cells.append([])
-            current_x = self.x1
+    def _break_walls_r(self, i, j):
+        self.visited.update({f"{self.current.get_center()}": self.current})
+        to_visit = [] + list(filter(self._filter_cell, self.grid.get_adjacent(i, j)))
 
-            for col_i in range(0, self.num_cols):
-                cell = Cell(current_x, current_y, [True, True, True, True], self.cell_size_x, self.cell_size_y)
-                self.cells[row_i].append(cell)
-                current_x += self.cell_size_x
+        if len(to_visit):
+            next_cell = random.choice(to_visit)
+            self.visited.update({f"{next_cell.get_center()}": next_cell})
+            self.blueprint.append(self.current.merge(next_cell))
+            next_x, next_y = next_cell.get_top_left_tuple()
+            next_j = int((next_x - self.grid.x1)  / self.grid.cell_size_x)
+            next_i = int((next_y - self.grid.y1) / self.grid.cell_size_y)
+            self.current = next_cell
+            self._break_walls_r(next_i, next_j)
 
-            current_y += self.cell_size_y
+    def _filter_cell(self, cell: Cell):
+        return not f"{cell.get_center()}" in self.visited        
 
-    def get_blueprint(self):
-        lines = set();
-        for cell_row in self.cells:
-            for cell in cell_row:
-                lines.update(cell.how_to_draw())
-
-        return lines
-    
-    def make_entrance(self):
+    def get_blueprint(self) -> List[Line]:
+        return self.blueprint
         
-        return self.cells[0][0].break_top()
-    
-    def make_exit(self):
-        x = self.num_cols - 1
-        y = self.num_rows - 1
-        return self.cells[y][x].break_bottom()
-    
