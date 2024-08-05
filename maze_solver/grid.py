@@ -44,7 +44,10 @@ class Grid:
         return lines
     
     def get_cell(self, i, j) -> Cell:
-        return self.cells[i][j]
+        if i > -1 and j > -1:
+            return self.cells[i][j]
+        else:
+            raise Exception("No cell")
     
     def get_size(self) -> Tuple[int, int]:
         return (self.num_rows, self.num_cols)

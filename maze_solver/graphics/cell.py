@@ -53,6 +53,26 @@ class Cell:
         self.has_bottom_wall = False
         return Line(self.bottom_left_point, self.bottom_right_point)
     
+    def get_broken_walls(self) -> List:
+        broken = []
+
+        if not self.has_bottom_wall:
+            broken.append("bottom")
+
+        if not self.has_left_wall:
+            broken.append("left")
+
+        if not self.has_right_wall:
+            broken.append("right")
+
+        if not self.has_top_wall:
+            broken.append("top")
+
+        return broken
+    
+    def get_num_walls(self) -> int:
+        return int(self.has_bottom_wall) + int(self.has_top_wall) + int(self.has_left_wall) + int(self.has_right_wall)
+    
     def merge(self, m: Self) -> Line:
         if self.top_left_point == m.top_right_point and self.bottom_left_point == m.bottom_right_point:
             self.has_left_wall = False
@@ -78,3 +98,6 @@ class Cell:
     
     def __repr__(self):
         return f"(x:{self.top_left_point.x},y:{self.top_left_point.y})"
+    
+    def __eq__(self, cell):
+        return self.top_left_point == cell.top_left_point
